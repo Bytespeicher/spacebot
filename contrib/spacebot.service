@@ -1,0 +1,13 @@
+[Unit]
+Description=Spacebot
+After=network.target
+
+[Service]
+User=spacebot
+WorkingDirectory=/home/spacebot/spacebot
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/usr/bin/python3 __init__.py
+Restart=no
+
+[Install]
+WantedBy=multi-user.target

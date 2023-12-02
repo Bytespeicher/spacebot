@@ -1,0 +1,9 @@
+# Configuration
+config/config.yaml
+
+# Cache
+config/cache/*
+!config/cache/.gitkeep
+
+# Byte-compiled / optimized / DLL files
+__pycache__/

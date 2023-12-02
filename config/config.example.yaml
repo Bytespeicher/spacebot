@@ -1,0 +1,36 @@
+matrix:
+  controlsign: '!'
+  homeserver: https://chat.example.org
+  username: '@spacebot:example.org'
+  password: 'THIS_IS_THE_MATRIX_USER_PASSWORD'
+  rooms:
+    - '!ABCDEFGHIJKLMNOPQR:chat.example.org'
+  sessioncache: config/cache/matrix-session
+plugins:
+  amtsblatt:
+    published: 0
+    # Restrict automatic announcement of new "Amtsblatt" to room
+    rooms:
+      - '!ABCDEFGHIJKLMNOPQR:chat.example.org'
+    rss: https://www.erfurt.de/ef/de/service/rss/amtsblatt.rss
+  dates:
+    # Restrict output of events for the couple of days
+    list_days: 21
+    # Intervals for auto announce in minutes
+    announce_interval:
+      - 60
+      - 1440
+    format:
+      datetime: '%d.%m.%Y %H:%M'
+    calendar:
+      - id: calendar1
+        name: First calender
+        url: https://calendar.example.org/calendar_1.ical
+      - id: calendar2
+        name: Second calender
+        url: https://calendar.example.org/calendar_2.ical
+        # Restrict automatic announcement of events to room
+        rooms:
+          - '!ABCDEFGHIJKLMNOPQR:chat.example.org'
+  time:
+    locale: de_DE
