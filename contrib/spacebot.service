@@ -6,7 +6,7 @@ After=network.target
 User=spacebot
 WorkingDirectory=/home/spacebot/spacebot
 Environment=PYTHONUNBUFFERED=1
-ExecStart=/usr/bin/python3 __init__.py
+ExecStart=/home/spacebot/virtualenv3/bin/python3 __init__.py
 Restart=no
 
 [Install]
