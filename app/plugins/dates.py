@@ -171,7 +171,7 @@ class dates(app.plugin.plugin):
         return [
             d['id']
             for d in self._config['calendar']
-            if 'rooms' not in d or roomId in d['rooms']
+            if 'rooms' in d and roomId in d['rooms']
         ]
 
     def __getCalendarIds(self) -> list:
