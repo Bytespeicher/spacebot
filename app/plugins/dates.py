@@ -257,7 +257,7 @@ class dates(app.plugin.plugin):
         output += "\n\n"
         output += \
             "Calendars with (*) will be used on command \"%sdates\"" \
-            "and auto announcements." % controlsign
+            " and auto announcements." % controlsign
 
         return output
 
