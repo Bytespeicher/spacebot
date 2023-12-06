@@ -188,10 +188,10 @@ class dates(app.plugin.plugin):
         """
 
         if parameter is None:
-            calendarIds = self.__getCalendarIdsByRoomId(roomId)
+            calendarIds = self._getIdsByRoomId('calendar', roomId)
         elif parameter == "all":
-            calendarIds = self.__getCalendarIds()
-        elif parameter in self.__getCalendarIds():
+            calendarIds = self._getIds('calendar')
+        elif parameter in self._getIds('calendar'):
             calendarIds = [parameter]
         else:
             return "Invalid parameter for !dates"
@@ -238,7 +238,7 @@ class dates(app.plugin.plugin):
         )
 
         # Get calendars used in this room
-        calendarIdsRoom = self.__getCalendarIdsByRoomId(roomId)
+        calendarIdsRoom = self._getIdsByRoomId('calendar', roomId)
 
         # Generate output
         output = \
@@ -273,7 +273,7 @@ class dates(app.plugin.plugin):
         for roomId in (await self._getJoinedRoomIds()):
             # Get events for room id
             events = self.__mergeAndSortEvents(
-                self.__getCalendarIdsByRoomId(roomId)
+                self._getIdsByRoomId('calendar', roomId)
             )
 
             # Loop announce intervals

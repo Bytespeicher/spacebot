@@ -118,3 +118,16 @@ class plugin(ABC):
                     "body": "%s" % message
                 }
             )
+
+    def _getIdsByRoomId(self, configName: str, roomId: str) -> list:
+        """Get list of item id with roomId
+           in room filter or no room filter"""
+        return [
+            d['id']
+            for d in self._config[configName]
+            if 'rooms' in d and roomId in d['rooms']
+        ]
+
+    def _getIds(self, configName: str) -> list:
+        """Get list of all items id"""
+        return [d['id'] for d in self._config[configName]]
