@@ -156,7 +156,7 @@ class rss(app.plugin.plugin):
 
             # No new entry
             if self.__getRssEntryPublished(feed['id'], 0) <= feed['published']:
-                return
+                continue
 
             # No rooms to auto announce, skip feed
             if 'rooms' not in feed:
