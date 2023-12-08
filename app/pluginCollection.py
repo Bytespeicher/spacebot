@@ -149,7 +149,7 @@ class pluginCollection:
                 'help'
             )
             result = keywordMethod(controlsign, roomId)
-        except AttributeError:
+        except (KeyError, AttributeError):
             result = "Plugin method has no extended help."
 
         return result
