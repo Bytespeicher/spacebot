@@ -8,20 +8,19 @@ matrix:
   sessioncache: config/cache/matrix-session
 plugins:
   amtsblatt:
+    # Timestamp from last announced item
     published: 0
     # Restrict automatic announcement of new "Amtsblatt" to room
     rooms:
       - '!ABCDEFGHIJKLMNOPQR:chat.example.org'
+    # RSS feed
     rss: https://www.erfurt.de/ef/de/service/rss/amtsblatt.rss
   dates:
-    # Restrict output of events for the couple of days
-    list_days: 21
     # Intervals for auto announce in minutes
     announce_interval:
       - 60
       - 1440
-    format:
-      datetime: '%d.%m.%Y %H:%M'
+    # Calendar definitions
     calendar:
       - id: calendar1
         name: First calender
@@ -32,5 +31,10 @@ plugins:
         # Restrict automatic announcement of events to room
         rooms:
           - '!ABCDEFGHIJKLMNOPQR:chat.example.org'
+    # Configure format for output
+    format:
+      datetime: '%d.%m.%Y %H:%M'
+    # Restrict output of events for the couple of days
+    list_days: 21
   time:
     locale: de_DE
