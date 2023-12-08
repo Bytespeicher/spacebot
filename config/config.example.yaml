@@ -36,5 +36,27 @@ plugins:
       datetime: '%d.%m.%Y %H:%M'
     # Restrict output of events for the couple of days
     list_days: 21
+  rss:
+    # Number of items in output
+    count:
+      # Merged feeds
+      merged: 1
+      # Single feeds
+      single: 3
+    feeds:
+    - id: wiki
+      name: Wiki
+      # Timestamp from last announced item, will be set to now on first start
+      # published: 0
+      # Restrict automatic announcement of rss feed entries to room
+      rooms:
+      - '!ABCDEFGHIJKLMNOPQR:chat.example.org'
+      # Optional type of rss feed (dokuwiki, wordpress or unset)
+      type: dokuwiki
+      url: https://wiki.example.org/feed.php
+    - id: blog
+      name: Blog
+      type: wordpress
+      url: https://example.org/feed/
   time:
     locale: de_DE
