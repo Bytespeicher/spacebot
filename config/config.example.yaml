@@ -51,6 +51,12 @@ plugins:
       # Restrict automatic announcement of rss feed entries to room
       rooms:
       - '!ABCDEFGHIJKLMNOPQR:chat.example.org'
+      # Summarize changes (print titles and summarize link)
+      summarize:
+        # Link to changelog
+        link: https://wiki.example.org/?do=recent
+        # Minimal treshold for number of entries which are NOT summarized
+        treshold: 1
       # Optional type of rss feed (dokuwiki, wordpress or unset)
       type: dokuwiki
       url: https://wiki.example.org/feed.php

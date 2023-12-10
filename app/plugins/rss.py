@@ -23,8 +23,8 @@ class rss(app.plugin.plugin):
     _configDefault = {
         'count': {
             'merged': 1,
-            'single': 3
-        }
+            'single': 3,
+        },
     }
 
     # Required configuration values
@@ -43,17 +43,30 @@ class rss(app.plugin.plugin):
             print(e)
             raise e
 
-        # Check last published timestamp and set to current timestamp if empty
-        for feed in self._config['feeds']:
-            try:
-                feed['published']
-            except KeyError:
-                feed['published'] = int(datetime.datetime.now().timestamp())
+        # Configuration check for feeds
+        self.__configCheck()
 
         # Get RSS once and refresh by cron
         asyncio.get_event_loop().run_until_complete(self.__getRss())
         aiocron.crontab('R/15 * * * *', func=self.__getRss)
-        aiocron.crontab('* * * * *', func=self.__announce)
+
+    def __configCheck(self):
+        """ Check default configuration for feeds """
+        for feed in self._config['feeds']:
+            # Set last published to current timestamp if empty
+            try:
+                feed['published']
+            except KeyError:
+                feed['published'] = int(datetime.datetime.now().timestamp())
+            # Set summarize treshold to 0 (disabled) if empty
+            try:
+                feed['summarize']
+            except KeyError:
+                feed['summarize'] = {}
+            try:
+                feed['summarize']['treshold']
+            except KeyError:
+                feed['summarize']['treshold'] = 0
 
     def rss(self, parameter, roomId):
         """Return answer
@@ -162,24 +175,52 @@ class rss(app.plugin.plugin):
             if 'rooms' not in feed:
                 continue
 
-            for x in reversed(range(0, len(self.__rss[feed['id']].entries))):
-                if self.__getRssEntryPublished(
-                        feed['id'], x) > feed['published']:
-                    for roomId in feed['rooms']:
-                        await self._sendMessage(
-                            self.__formatOutput(
-                                feed,
-                                self.__rss[feed['id']].entries[x]
-                            ),
-                            roomId
-                        )
+            # Get new entries
+            entries = [
+                entry
+                for x, entry in enumerate(self.__rss[feed['id']].entries)
+                if (
+                    self.__getRssEntryPublished(feed['id'], x) >
+                    feed['published']
+                )
+            ]
 
-                    feed['published'] = \
-                        self.__getRssEntryPublished(feed['id'], x)
+            # Generate output for entries
+            output = ""
+            for x in reversed(range(0, len(entries))):
+                output += \
+                    self.__formatOutput(
+                        feed,
+                        entries[x],
+                        (feed['summarize']['treshold'] != 0)
+                        and (len(entries) > feed['summarize']['treshold'])
+                    )
+                if x > 0:
+                    output += "\n"
 
-        self._setConfig()
+            # Set last published to latest entry and save config
+            feed['published'] = \
+                self.__getRssEntryPublished(feed['id'], 0)
+            self._setConfig()
 
-    async def __getRss(self):
+            # Add header and footer for summarize
+            if (feed['summarize']['treshold'] != 0 and
+                    len(entries) > feed['summarize']['treshold']):
+                output = \
+                    "%s | %d entries in RSS feed found:\n" % (
+                        feed['name'].upper(), len(entries)
+                    ) + output
+                if 'link' in feed['summarize']:
+                    output += "\n%s" % feed['summarize']['link']
+
+            # Delete entries
+            del entries
+
+            # Announce message in rooms
+            for roomId in feed['rooms']:
+                await self._sendMessage(output, roomId)
+
+    async def __getRss(self, announce=True):
         """Get and parse latest RSS feeds"""
         for feed in self._config['feeds']:
             async with aiohttp.ClientSession() as session:
@@ -191,8 +232,18 @@ class rss(app.plugin.plugin):
                     if response.status == 200:
                         self.__rss[feed['id']] = \
                             feedparser.parse(await response.text())
+                    else:
+                        print(
+                            "[%s] Error downloading RSS feed. HTTP status: %d"
+                            % (self.getName(), response.status)
+                        )
 
-    def __formatOutput(self, feed: dict, entry: dict) -> str:
+        # Announce new entries after updating RSS feed
+        if announce:
+            await self.__announce()
+
+    def __formatOutput(self, feed: dict, entry: dict,
+                       summarize: bool = True) -> str:
         """Format RSS entry"""
 
         # Format Dokuwiki
@@ -214,9 +265,15 @@ class rss(app.plugin.plugin):
             message = "%s: %s" % (entry.author, entry.title)
             message2 = "%s" % entry.link
 
-        return \
-            "%s | %s\n%s\n" % (
-                feed['name'].upper(),
-                message,
-                message2
-            )
+        if summarize:
+            return \
+                "%s" % (
+                    message
+                )
+        else:
+            return \
+                "%s | %s\n%s" % (
+                    feed['name'].upper(),
+                    message,
+                    message2
+                )
