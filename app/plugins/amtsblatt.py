@@ -13,7 +13,7 @@ from app.config import config
 
 class amtsblatt(app.plugin.plugin):
     """
-    Plugin to post current link to Amtsblatt der Stadt Erfurt
+    Plugin to announce current link to Amtsblatt der Stadt Erfurt
     """
 
     # Keyword
@@ -43,7 +43,7 @@ class amtsblatt(app.plugin.plugin):
             raise e
 
         # Get RSS once and refresh by cron
-        asyncio.get_event_loop().run_until_complete(self.__getRss(False))
+        asyncio.get_event_loop().run_until_complete(self.__getRss())
         aiocron.crontab('0 */4 * * *', func=self.__getRss)
 
     def amtsblatt(self, parameter, roomId):
@@ -68,7 +68,7 @@ class amtsblatt(app.plugin.plugin):
                 ).timestamp()
             )
 
-    async def __post(self):
+    async def __announce(self):
         # No new entry
         if self.__getRssLastEntryPublished() <= self._config['published']:
             return
@@ -83,7 +83,7 @@ class amtsblatt(app.plugin.plugin):
         self._config['published'] = self.__getRssLastEntryPublished()
         self._setConfig()
 
-    async def __getRss(self, post=True):
+    async def __getRss(self, announce=True):
         """Get and parse latest RSS feed"""
         async with aiohttp.ClientSession() as session:
             async with session.get(self._config['rss']) as response:
@@ -93,5 +93,5 @@ class amtsblatt(app.plugin.plugin):
                 )
                 self.__rss = feedparser.parse(await response.text())
 
-        if post:
-            await self.__post()
+        if announce:
+            await self.__announce()
