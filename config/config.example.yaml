@@ -46,6 +46,8 @@ plugins:
     feeds:
     - id: wiki
       name: Wiki
+      # Run only every 4 hours on random minute
+      cron: 'R */4 * * *'
       # Timestamp from last announced item, will be set to now on first start
       # published: 0
       # Restrict automatic announcement of rss feed entries to room

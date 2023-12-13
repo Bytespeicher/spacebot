@@ -46,9 +46,24 @@ class rss(app.plugin.plugin):
         # Configuration check for feeds
         self.__configCheck()
 
-        # Get RSS once and refresh by cron
+        # Get all RSS feeds once
         asyncio.get_event_loop().run_until_complete(self.__getRss())
-        aiocron.crontab('R/15 * * * *', func=self.__getRss)
+
+        # Initialize crons to refresh RSS feeds
+        feedIdsDefaultCron = []
+        for feed in self._config['feeds']:
+            if 'cron' in feed:
+                # Feed has cron definition, so run as seperate cron
+                aiocron.crontab(feed['cron'], func=self.__getRss, args=(True, [feed['id']]))
+            else:
+                # collect feed ids without cron definition
+                feedIdsDefaultCron.append(feed['id'])
+
+        # Run collected feed ids in standard cron
+        if len(feedIdsDefaultCron) > 0:
+            aiocron.crontab('R/15 * * * *', func=self.__getRss, args=(True, feedIdsDefaultCron))
+
+        del feedIdsDefaultCron
 
     def __configCheck(self):
         """ Check default configuration for feeds """
@@ -110,10 +125,11 @@ class rss(app.plugin.plugin):
                 try:
                     output += self.__formatOutput(
                          feed, self.__rss[feed['id']].entries[x]
-
                          )
                 except IndexError:
                     pass
+                if x <= feedEntryCount:
+                    output += "\n"
 
         return output
 
@@ -162,10 +178,14 @@ class rss(app.plugin.plugin):
                 ).timestamp()
             )
 
-    async def __announce(self):
+    async def __announce(self, feedIds: list = None):
 
         # Check all feeds
         for feed in self._config['feeds']:
+
+            # check if feed id list is not empty and id in list
+            if feedIds is not None and feed['id'] not in feedIds:
+                continue
 
             # No new entry
             if self.__getRssEntryPublished(feed['id'], 0) <= feed['published']:
@@ -220,9 +240,16 @@ class rss(app.plugin.plugin):
             for roomId in feed['rooms']:
                 await self._sendMessage(output, roomId)
 
-    async def __getRss(self, announce=True):
+    async def __getRss(self, announce: bool = True, feedIds: list = None):
+
         """Get and parse latest RSS feeds"""
         for feed in self._config['feeds']:
+
+            # check if feed id list is not empty and id in list
+            if feedIds is not None and feed['id'] not in feedIds:
+                continue
+
+            # Refresh RSS feed
             async with aiohttp.ClientSession() as session:
                 async with session.get(feed['url']) as response:
                     print(
@@ -240,10 +267,10 @@ class rss(app.plugin.plugin):
 
         # Announce new entries after updating RSS feed
         if announce:
-            await self.__announce()
+            await self.__announce(feedIds=feedIds)
 
     def __formatOutput(self, feed: dict, entry: dict,
-                       summarize: bool = True) -> str:
+                       summarize: bool = False) -> str:
         """Format RSS entry"""
 
         # Format Dokuwiki
