@@ -54,14 +54,22 @@ class rss(app.plugin.plugin):
         for feed in self._config['feeds']:
             if 'cron' in feed:
                 # Feed has cron definition, so run as seperate cron
-                aiocron.crontab(feed['cron'], func=self.__getRss, args=(True, [feed['id']]))
+                aiocron.crontab(
+                    feed['cron'],
+                    func=self.__getRss,
+                    args=(True, [feed['id']])
+                )
             else:
                 # collect feed ids without cron definition
                 feedIdsDefaultCron.append(feed['id'])
 
-        # Run collected feed ids in standard cron
+        # Run collected feed ids in standard cron every 15 minutes
         if len(feedIdsDefaultCron) > 0:
-            aiocron.crontab('R/15 * * * *', func=self.__getRss, args=(True, feedIdsDefaultCron))
+            aiocron.crontab(
+                'R/15 * * * *',
+                func=self.__getRss,
+                args=(True, feedIdsDefaultCron)
+            )
 
         del feedIdsDefaultCron
 
