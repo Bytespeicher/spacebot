@@ -1,7 +1,8 @@
-import inspect
-import pkgutil
-import os
 import asyncio
+import inspect
+import os
+import pkgutil
+
 import app.plugin
 
 
@@ -133,7 +134,13 @@ class pluginCollection:
                 self.__plugins[self.__keywords[keyword]['plugin']],
                 keyword
             )
-            result = keywordMethod(parameter, roomId)
+
+            # Call (a)synchronous function
+            if inspect.iscoroutinefunction(keywordMethod):
+                result = await keywordMethod(parameter, roomId)
+            else:
+                result = keywordMethod(parameter, roomId)
+
         except AttributeError:
             result = "Plugin method for keyword not implemented."
 
