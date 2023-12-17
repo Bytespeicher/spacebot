@@ -66,5 +66,16 @@ plugins:
       name: Blog
       type: wordpress
       url: https://example.org/feed/
+  status:
+    # Cache interval
+    cache_interval: 60
+    # Show people present
+    show_people: false
+    status:
+    - id: examplespace
+      url: https://status.example.org/status.json
+      # Restrict command response to room
+      rooms:
+      - '!ABCDEFGHIJKLMNOPQR:chat.example.org'
   time:
     locale: de_DE
