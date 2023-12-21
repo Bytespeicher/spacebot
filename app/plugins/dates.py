@@ -266,18 +266,23 @@ class dates(app.plugin.plugin):
         # Get calendars used in this room
         calendarIdsRoom = self._getIdsByRoomId('calendar', roomId)
 
+        # Get max length of calendar ids or "CALENDAR ID"
+        idMaxLength = max(11, len(max(self.__calendarConfig, key=len)))+1
+
         # Generate output
         output = \
             "You can query a single calendar using " \
-            "\"%sdates [calender id]\".\n" % controlsign
+            "\"%sdates [CALENDAR ID]\".\n" % controlsign
         output += \
             "To get a combination from all calendars " \
-            "use \"%sdates all\".\n" % controlsign
-        output += "Available calenders:\n"
+            "use \"%sdates all\".\n\n" % controlsign
+        output += "%s | NAME" % 'CALENDAR ID'.rjust(idMaxLength, ' ')
         for calendar in calendarConfig:
             outputExtend = []
             output += '\n'
-            output += '[%s] %s' % (calendar['id'], calendar['name'])
+            output += '%s | %s' % (
+                calendar['id'].rjust(idMaxLength, ' '), calendar['name']
+            )
             if calendar['id'] in calendarIdsRoom:
                 outputExtend.append("*")
             if 'limit_entries' in calendar:
