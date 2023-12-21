@@ -31,6 +31,14 @@ plugins:
         # Restrict automatic announcement of events to room
         rooms:
           - '!ABCDEFGHIJKLMNOPQR:chat.example.org'
+        # Optional calendar individual intervals for auto announce in minutes
+        # announce_interval:
+        #   - 15
+        #   - 45
+        # Limit entries on command (optional)
+        # limit_entries: 4
+        # Announce location (optional)
+        # announce_location: true
     # Configure format for output
     format:
       datetime: '%d.%m.%Y %H:%M'

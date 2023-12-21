@@ -34,6 +34,9 @@ class dates(app.plugin.plugin):
         'format.datetime',
     ]
 
+    # Calendar configurations
+    __calendarConfig = {}
+
     # Calendar objects
     __calendar = {}
 
@@ -41,7 +44,7 @@ class dates(app.plugin.plugin):
     __events = {}
 
     def __init__(self, matrixApi):
-        """Start base class constructor"""
+        """ Start base class constructor """
         try:
             super().__init__(matrixApi)
         except LookupError as e:
@@ -63,6 +66,9 @@ class dates(app.plugin.plugin):
             )
             locale.setlocale(locale.LC_TIME, None)
 
+        # Get calendar configurations as dictionary
+        self.__calendarConfig = self._getConfigList('calendar')
+
         # Get ical once and refresh bycron
         asyncio.get_event_loop().run_until_complete(self.__getIcals())
         asyncio.get_event_loop().run_until_complete(self.__announce())
@@ -70,7 +76,7 @@ class dates(app.plugin.plugin):
         aiocron.crontab('* * * * *', func=self.__announce)
 
     async def __getIcals(self):
-        """Get icals for all calendars"""
+        """ Get iCals for all calendars """
         for calendar in self._config['calendar']:
             await self.__getIcal(calendar)
 
@@ -88,10 +94,10 @@ class dates(app.plugin.plugin):
                     )
                     self.__calendar[calendarConfig['id']] = \
                         icalendar.Calendar.from_ical(await response.text())
-                    self.__parseEvents(calendarConfig['id'])
+                    self.__parseEvents(calendarConfig)
 
         except Exception as e:
-            # Something went wrong, remove parsed calender
+            # Something went wrong, remove parsed calendar
             print(
                 "[%s] Refreshing calendar '%s' failed: %s"
                 % (
@@ -102,7 +108,7 @@ class dates(app.plugin.plugin):
             )
             self.__calendar[calendarConfig['id']] = None
 
-    def __parseEvents(self, calendarId):
+    def __parseEvents(self, calendarConfig: dict):
 
         # Calculate start and end date
         start_date = datetime.datetime.now()
@@ -112,7 +118,7 @@ class dates(app.plugin.plugin):
         # Get events in interval
         eventsFromIcal = \
             recurring_ical_events.of(
-                self.__calendar[calendarId], components=["VEVENT"]
+                self.__calendar[calendarConfig['id']], components=["VEVENT"]
             ).between(start_date, end_date)
 
         # Parse events
@@ -135,6 +141,7 @@ class dates(app.plugin.plugin):
                         second=0
                     )
                 )
+
             if type(dtend) is datetime.date:
                 dtend = pytz.timezone('Europe/Berlin').localize(
                     datetime.datetime(
@@ -147,8 +154,13 @@ class dates(app.plugin.plugin):
                     )
                 )
 
+            # Localize start and end
+            dtstart = dtstart.astimezone(pytz.timezone('Europe/Berlin'))
+            dtend = dtend.astimezone(pytz.timezone('Europe/Berlin'))
+
             # Add event to parsed events
             eventsParsed.append({
+                'calendar_id': calendarConfig['id'],
                 'start': dtstart,
                 'end': dtend,
                 'summary': event.get('SUMMARY'),
@@ -162,24 +174,51 @@ class dates(app.plugin.plugin):
             reverse=False
         )
 
-        self.__events[calendarId] = eventsParsed
+        self.__events[calendarConfig['id']] = eventsParsed
         return
 
-    def __getCalendarIdsByRoomId(self, roomId: str) -> list:
-        """Get list of calender id with roomId
-           in room filter or no room filter"""
-        return [
-            d['id']
-            for d in self._config['calendar']
-            if 'rooms' in d and roomId in d['rooms']
-        ]
+    def __getAnnounceIntervalsByCalendarIds(self, calendarIds: list) -> list:
+        """ Get individual or global announce intervals """
 
-    def __getCalendarIds(self) -> list:
-        """Get list of all calender id"""
-        return [d['id'] for d in self._config['calendar']]
+        # Create initial dict for interval summary
+        announceIntervals = {
+            "__all": []
+        }
+
+        for calendarId in calendarIds:
+            try:
+                announceIntervalsByCalendarId = \
+                    self.__calendarConfig[calendarId]['announce_interval']
+                # Ensure announce interval is a list
+                if not type(announceIntervalsByCalendarId) is list:
+                    announceIntervalsByCalendarId = \
+                        [announceIntervalsByCalendarId]
+
+                announceIntervals['__all'] += announceIntervalsByCalendarId
+                announceIntervals[calendarId] = \
+                    sorted(announceIntervalsByCalendarId)
+            except KeyError:
+                # Use global interval due to missing individual configuration
+                announceIntervals['__all'] += self._config['announce_interval']
+                announceIntervals[calendarId] = \
+                    sorted(self._config['announce_interval'])
+
+        # Consolidate announce interval summary
+        announceIntervals['__all'] = \
+            sorted(list(set(announceIntervals['__all'])))
+
+        return announceIntervals
+
+    def __isAnnounceLocation(self, calendarId: str) -> bool:
+        """ Return if calendar should announce location """
+        try:
+            return self.__calendarConfig[calendarId]['announce_location']
+        except KeyError:
+            return False
 
     def dates(self, parameter: str, roomId: str):
-        """Return answer
+        """
+        Return answer
 
         Return
         ----------
@@ -206,20 +245,7 @@ class dates(app.plugin.plugin):
             output = "Please notice the next following event(s):"
             for event in eventsMerged:
                 output += "\n"
-                output += \
-                    "  %s - %s" % (
-                        event['start'].strftime(
-                            self._config['format']['datetime']
-                        ),
-                        event['summary']
-                    )
-                if event['end'].date() > event['start'].date():
-                    output += \
-                        " (until %s)" % (
-                            event['end'].strftime(
-                                self._config['format']['datetime']
-                            )
-                        )
+                output += self.__formatOutput(event)
         else:
             # No event found
             output = \
@@ -249,10 +275,17 @@ class dates(app.plugin.plugin):
             "use \"%sdates all\".\n" % controlsign
         output += "Available calenders:\n"
         for calendar in calendarConfig:
+            outputExtend = []
             output += '\n'
             output += '[%s] %s' % (calendar['id'], calendar['name'])
             if calendar['id'] in calendarIdsRoom:
-                output += " (*)"
+                outputExtend.append("*")
+            if 'limit_entries' in calendar:
+                outputExtend.append(
+                    "max. %d entries" % calendar['limit_entries']
+                )
+            if len(outputExtend) > 0:
+                output += " (%s)" % ', '.join(outputExtend)
 
         output += "\n\n"
         output += \
@@ -262,7 +295,7 @@ class dates(app.plugin.plugin):
         return output
 
     async def __announce(self):
-        """Announce upcoming evens"""
+        """ Announce upcoming evens """
 
         # Get current date and time without (micro)seconds
         now = pytz.timezone('Europe/Berlin').localize(
@@ -271,38 +304,76 @@ class dates(app.plugin.plugin):
 
         # Announce dates by joined rooms
         for roomId in (await self._getJoinedRoomIds()):
+
             # Get events for room id
             events = self.__mergeAndSortEvents(
-                self._getIdsByRoomId('calendar', roomId)
+                calendarIds=self._getIdsByRoomId('calendar', roomId),
+                ignoreLimit=True
             )
 
-            # Loop announce intervals
-            for announceInterval in self._config['announce_interval']:
+            # Get all announceIntervals
+            announceIntervals = \
+                self.__getAnnounceIntervalsByCalendarIds(
+                    self._getIdsByRoomId('calendar', roomId)
+                )
+
+            # Generate output
+            output = []
+            for announceInterval in announceIntervals['__all']:
 
                 # Loop events to find starting exactly after interval
                 for event in events:
+
+                    # Skip event if interval is not configured for calendar
+                    if announceInterval not in \
+                            announceIntervals[event['calendar_id']]:
+                        continue
+
                     # Calculate datetime from now and interval
                     then = now + datetime.timedelta(minutes=announceInterval)
+
+                    # Event found starting exactly after announce interval
                     if event['start'] == then:
-                        # Event found starting exactly after announce interval
-                        await self._sendMessage(
-                            "Upcoming event: %s - %s" % (
-                                event['start'].strftime(
-                                    self._config['format']['datetime']
-                                ),
-                                event['summary']
-                            ),
-                            roomId
-                        )
+                        output.append(self.__formatOutput(event))
+
+                    # Ignore sorted events if start is after interval
                     if event['start'] > then:
-                        # Ignore sorted events if start is after interval
                         break
 
-    def __mergeAndSortEvents(self, calendarIds: list) -> list:
-        """ Merge and sort events based on a list of calendar Ids"""
+            # Output single event
+            if len(output) == 1:
+                await self._sendMessage(
+                    "Upcoming event: %s" % output[0],
+                    roomId
+                )
+            # Output multiple events
+            elif len(output) > 1:
+                await self._sendMessage(
+                    "Upcoming events:\n%s" % "\n".join(output),
+                    roomId
+                )
+
+    def __mergeAndSortEvents(
+            self, calendarIds: list, ignoreLimit: bool = False) -> list:
+        """ Merge and sort events based on a list of calendar Ids """
+
         eventsMerged = []
         for calendarId in calendarIds:
-            eventsMerged += self.__events[calendarId]
+
+            # Get events for calendar
+            if ignoreLimit:
+                # Ignore Limit
+                eventsMerged += self.__events[calendarId]
+            else:
+                # Shorten event list (if limit_entries configured)
+                try:
+                    eventsMerged += \
+                        self.__events[calendarId][
+                            0:
+                            self.__calendarConfig[calendarId]['limit_entries']
+                        ]
+                except KeyError:
+                    eventsMerged += self.__events[calendarId]
 
         # Resort by datetime
         eventsMerged = sorted(
@@ -312,3 +383,26 @@ class dates(app.plugin.plugin):
         )
 
         return eventsMerged
+
+    def __formatOutput(self, event: dict) -> str:
+        """ Format output """
+        output = \
+            "%s - %s" % (
+                event['start'].strftime(
+                    self._config['format']['datetime']
+                ),
+                event['summary']
+            )
+
+        if event['end'].date() > event['start'].date():
+            output += \
+                " (until %s)" % (
+                    event['end'].strftime(
+                        self._config['format']['datetime']
+                    )
+                )
+
+        if self.__isAnnounceLocation(event['calendar_id']):
+            output += " (%s)" % event['location']
+
+        return output

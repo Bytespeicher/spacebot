@@ -76,6 +76,10 @@ class plugin(ABC):
     def _setConfig(self) -> dict:
         config().setPluginConfig(self.getName(), self._config)
 
+    def _getConfigList(self, configName: str) -> dict:
+        """ Return configuration sub list as dictionary """
+        return {v['id']: v for k, v in enumerate(self._config[configName])}
+
     def registerKeywords(self) -> dict:
         return {
             keyword: {
