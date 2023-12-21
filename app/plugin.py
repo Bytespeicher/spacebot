@@ -98,7 +98,8 @@ class plugin(ABC):
             print("Error getting joined rooms: %s" % e)
             return []
 
-    async def _sendMessage(self, message, roomId: str = None):
+    async def _sendMessage(
+            self, message, roomId: str = None, messageType: str = "text"):
 
         # Get rooms by plugin, global rooms or given parameter
         if roomId is None:
@@ -109,6 +110,9 @@ class plugin(ABC):
         else:
             rooms = [roomId]
 
+        if messageType not in ['text', 'notice']:
+            raise ValueError("Wrong value for messageType")
+
         for room in rooms:
             print(
                 "[%s] Send message in room %s:\n%s"
@@ -118,7 +122,7 @@ class plugin(ABC):
                 room,
                 message_type="m.room.message",
                 content={
-                    "msgtype": "m.text",
+                    "msgtype": "m.%s" % messageType,
                     "body": "%s" % message
                 }
             )

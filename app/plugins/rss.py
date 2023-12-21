@@ -246,7 +246,7 @@ class rss(app.plugin.plugin):
 
             # Announce message in rooms
             for roomId in feed['rooms']:
-                await self._sendMessage(output, roomId)
+                await self._sendMessage(output, roomId, messageType="notice")
 
     async def __getRss(self, announce: bool = True, feedIds: list = None):
 

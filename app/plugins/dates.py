@@ -349,13 +349,15 @@ class dates(app.plugin.plugin):
             if len(output) == 1:
                 await self._sendMessage(
                     "Upcoming event: %s" % output[0],
-                    roomId
+                    roomId=roomId,
+                    messageType="notice"
                 )
             # Output multiple events
             elif len(output) > 1:
                 await self._sendMessage(
                     "Upcoming events:\n%s" % "\n".join(output),
-                    roomId
+                    roomId=roomId,
+                    messageType="notice"
                 )
 
     def __mergeAndSortEvents(

@@ -78,7 +78,8 @@ class amtsblatt(app.plugin.plugin):
                 "Neu veröffentlicht",
                 self.__rss.entries[0].title,
                 self.__rss.entries[0].link
-            )
+            ),
+            messageType="notice"
         )
         self._config['published'] = self.__getRssLastEntryPublished()
         self._setConfig()
