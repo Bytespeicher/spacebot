@@ -84,8 +84,15 @@ class plugin(ABC):
         return {
             keyword: {
                 'plugin': self.getName(),
-                'description': description
-            } for keyword, description in self._keywords.items()}
+                'description':
+                    config
+                    if type(config) is str
+                    else config.get('description', None),
+                'rooms':
+                    []
+                    if type(config) is str
+                    else config.get('rooms', []),
+            } for keyword, config in self._keywords.items()}
 
     def getKeywords(self) -> str:
         return ','.join(self._keywords.keys())
@@ -139,3 +146,10 @@ class plugin(ABC):
     def _getIds(self, configName: str) -> list:
         """Get list of all items id"""
         return [d['id'] for d in self._config[configName]]
+
+    def _getRooms(self, configName: str) -> list:
+        """Get list of all configured rooms for the plugin"""
+        return [
+            item for row in
+            self._config[configName] for item in row['rooms']
+        ]

@@ -315,7 +315,8 @@ class bot:
                                 "Please use one of the following commands:\
                                 <pre><code>%s</code></pre>"
                                 % await pluginCollection().help(
-                                    self._config['controlsign']
+                                    self._config['controlsign'],
+                                    room.room_id
                                 )
                         }
                     )
@@ -343,14 +344,15 @@ class bot:
 
             # Any other request
             else:
-                if pluginCollection().isValidKeyword(keyword):
-                    result = \
-                        await pluginCollection().keyword(
-                            keyword,
-                            parameter,
-                            room.room_id
-                        )
+                result = \
+                    await pluginCollection().keyword(
+                        keyword,
+                        parameter,
+                        room.room_id
+                    )
 
+                if result is not None:
+                    # Send valid result
                     messageResponse = await self.__matrixApi.room_send(
                         room.room_id,
                         message_type="m.room.message",

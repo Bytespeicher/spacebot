@@ -15,7 +15,10 @@ class status(app.plugin.plugin):
 
     # Keyword
     _keywords = {
-        'status': 'Show current status',
+        'status': {
+            'description': 'Show current status',
+            'rooms': [],
+        }
     }
 
     # Default config
@@ -43,6 +46,9 @@ class status(app.plugin.plugin):
         except LookupError as e:
             print(e)
             raise e
+
+        # Set available rooms from config
+        self._keywords['status']['rooms'] = self._getRooms('status')
 
         # Get status once
         for statusConfig in self._config['status']:

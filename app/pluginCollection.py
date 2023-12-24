@@ -110,9 +110,9 @@ class pluginCollection:
                 for childPackage in childPackages:
                     self.__scanPlugins(package + '.' + childPackage, matrixApi)
 
-    async def help(self, controlsign: str) -> str:
+    async def help(self, controlsign: str, roomId: str) -> str:
         maxLengthKeywords = len(max(self.__keywords.keys(), key=len))
-        output = "%s%s\n  %s\n" \
+        output = "%s%s\n  %s" \
             % (
                 controlsign,
                 'help [command]',
@@ -120,24 +120,39 @@ class pluginCollection:
                 'Example: %shelp dates' % controlsign
             )
 
-        output += '\n'.join([
-            "%s%s\n  %s"
-            % (controlsign, keyword, value['description'])
-            for keyword, value in self.__keywords.items()]
-        )
-        return output
+        for keyword, value in self.__keywords.items():
 
-    def isValidKeyword(self, keyword: str) -> bool:
-        return keyword in self.__keywords.keys()
+            # Room ID not in rooms list
+            if len(value['rooms']) > 0 and roomId not in value['rooms']:
+                continue
+
+            output += \
+                "\n%s%s\n  %s" \
+                % (controlsign, keyword, value['description'])
+
+        return output
 
     async def keyword(self, keyword: str, parameter: str, roomId) -> str:
         """
-        Run plugin function for keyword
+        Run plugin method for keyword
         """
 
+        # Keyword is not valid
+        if keyword not in self.__keywords.keys():
+            return None
+
+        # Get plugin name
+        pluginName = self.__keywords[keyword]['plugin']
+
+        # Room ID not in rooms list
+        if len(self.__keywords[pluginName]['rooms']) > 0 \
+                and roomId not in self.__keywords[pluginName]['rooms']:
+            return None
+
+        # Run plugin method
         try:
             keywordMethod = getattr(
-                self.__plugins[self.__keywords[keyword]['plugin']],
+                self.__plugins[pluginName],
                 keyword
             )
 
