@@ -13,13 +13,13 @@ from app.config import config
 
 class amtsblatt(app.plugin.plugin):
     """
-    Plugin to announce current link to Amtsblatt der Stadt Erfurt
+    Plugin to announce current link to Amtsblatt der Landeshauptstadt Erfurt
     """
 
     # Keyword
     _keywords = {
         'amtsblatt': {
-            'description': 'Link to latest "Amtsblatt der Stadt Erfurt"',
+            'description': 'Link to latest "Amtsblatt der Landeshauptstadt Erfurt"',
         }
     }
 
