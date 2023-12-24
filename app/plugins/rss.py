@@ -156,17 +156,20 @@ class rss(app.plugin.plugin):
         # Get rss used in this room
         feedIdsRoom = self._getIdsByRoomId('feeds', roomId)
 
+        # Get max length of feed ids or "FEED-ID"
+        idMaxLength = max(7, len(max(self._getIds('feeds'), key=len)))+1
+
         # Generate output
         output = \
             "You can query a single RSS feed using " \
-            "\"%srss [feed id]\".\n" % controlsign
+            "\"%srss FEED-ID\".\n" % controlsign
         output += \
             "To get a combination from all feeds " \
-            "use \"%srss all\".\n" % controlsign
-        output += "Available feeds:\n"
+            "use \"%srss all\".\n\n" % controlsign
+        output += "%s | NAME" % 'FEED-ID'.rjust(idMaxLength, ' ')
         for feed in feedConfig:
             output += '\n'
-            output += '[%s] %s' % (feed['id'], feed['name'])
+            output += '%s | %s' % (feed['id'].rjust(idMaxLength), feed['name'])
             if feed['id'] in feedIdsRoom:
                 output += " (*)"
 
