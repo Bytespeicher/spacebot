@@ -5,14 +5,14 @@ import app.plugin
 from app.config import config
 
 
-class time(app.plugin.plugin):
+class now(app.plugin.plugin):
     """
     Plugin to post current time
     """
 
     # Keyword
     _keywords = {
-        'now': 'Return current date and time',
+        'now': 'Current date and time',
     }
 
     # Default config
