@@ -84,7 +84,8 @@ class plugin(ABC):
         return {
             keyword: {
                 'plugin': self.getName(),
-                'description': config.get('description', "No description available."),
+                'description':
+                    config.get('description', "No description available."),
                 'rooms': config.get('rooms', []),
                 'help': config.get('help', False),
             } for keyword, config in self._keywords.items()}
