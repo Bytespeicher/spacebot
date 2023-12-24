@@ -10,7 +10,9 @@ class echo(app.plugin.plugin):
 
     # Keyword
     _keywords = {
-        'echo': 'Bot returns text after keyword echo',
+        'echo': {
+            'description': 'Print text after keyword',
+        }
     }
 
     # Default config

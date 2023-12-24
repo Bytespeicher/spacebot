@@ -16,7 +16,10 @@ class rss(app.plugin.plugin):
 
     # Keyword
     _keywords = {
-        'rss': 'Return latest entries from RSS feeds',
+        'rss': {
+            'description': 'Latest entries from RSS feeds',
+            'help': True,
+        }
     }
 
     # Default config

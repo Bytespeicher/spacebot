@@ -18,7 +18,10 @@ class dates(app.plugin.plugin):
 
     # Keyword
     _keywords = {
-        'dates': 'Show current dates',
+        'dates': {
+            'description': 'Next dates from calendar',
+            'help': True,
+        }
     }
 
     # Default config

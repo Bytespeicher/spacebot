@@ -16,7 +16,7 @@ class status(app.plugin.plugin):
     # Keyword
     _keywords = {
         'status': {
-            'description': 'Show current status',
+            'description': 'Current room status',
             'rooms': [],
         }
     }

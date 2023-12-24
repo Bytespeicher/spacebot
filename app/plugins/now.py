@@ -12,7 +12,9 @@ class now(app.plugin.plugin):
 
     # Keyword
     _keywords = {
-        'now': 'Current date and time',
+        'now': {
+            'description': 'Current date and time',
+        }
     }
 
     # Default config
