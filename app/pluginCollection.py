@@ -116,7 +116,7 @@ class pluginCollection:
     async def help(self, controlsign: str, roomId: str) -> str:
         maxLengthKeywords = len(max(self.__keywords.keys(), key=len))
 
-        output = "Please use one of the following commands.\n\n%s | %s\n" % (
+        output = "%s | %s\n" % (
             'COMMAND'.rjust(maxLengthKeywords+2),
             'FUNCTION'
         )
