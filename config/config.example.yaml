@@ -89,6 +89,6 @@ plugins:
       # Restrict command response to room
       rooms:
       - '!ABCDEFGHIJKLMNOPQR:chat.example.org'
-  time:
+  now:
     _enabled: true
     locale: de_DE
