@@ -84,3 +84,11 @@ class config:
         self.__config['plugins'][plugin] = data
         self.__save()
         return self.__config['plugins'][plugin]
+
+    def isPluginEnabled(self, plugin: str) -> bool:
+        """ Return if plugin is enabled """
+        try:
+            return self.__config['plugins'][plugin]['_enabled']
+        except KeyError:
+            # Enabled by default if _enabled key is missing
+            return True

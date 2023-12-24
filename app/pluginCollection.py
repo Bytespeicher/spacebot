@@ -4,6 +4,7 @@ import os
 import pkgutil
 
 import app.plugin
+from app.config import config
 
 
 class pluginCollection:
@@ -69,8 +70,9 @@ class pluginCollection:
                     # Only add classes that are a sub class
                     # of plugin, but NOT plugin itself
                     if (
-                        issubclass(c, app.plugin.plugin) and
-                        c is not app.plugin.plugin
+                        issubclass(c, app.plugin.plugin)
+                        and c is not app.plugin.plugin
+                        and config().isPluginEnabled(c.__name__)
                             ):
                         # Add plugin
                         self.__plugins[c.__name__] = c(matrixApi)
