@@ -304,23 +304,13 @@ class bot:
 
                 if parameter is None:
                     # No parameter, output global help
-                    messageResponse = await self.__matrixApi.room_send(
-                        room.room_id,
-                        message_type="m.room.message",
-                        content={
-                            "msgtype": "m.notice",
-                            "format": "org.matrix.custom.html",
-                            "body": "message",
-                            "formatted_body":
-                                "Please use one of the following commands:\
-                                <pre><code>%s</code></pre>"
-                                % await pluginCollection().help(
-                                    self._config['controlsign'],
-                                    room.room_id
-                                )
-                        }
-                    )
+                    result = \
+                        await pluginCollection().help(
+                            self._config['controlsign'],
+                            room.room_id
+                        )
                 else:
+                    # Parameter set, output plugin help if available
                     result = \
                         await pluginCollection().keywordHelp(
                             parameter,
@@ -328,7 +318,8 @@ class bot:
                             room.room_id
                         )
 
-                    # No parameter, output global help
+                # Output valid results
+                if result is not None:
                     messageResponse = await self.__matrixApi.room_send(
                         room.room_id,
                         message_type="m.room.message",
