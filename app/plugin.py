@@ -84,14 +84,9 @@ class plugin(ABC):
         return {
             keyword: {
                 'plugin': self.getName(),
-                'description':
-                    config
-                    if type(config) is str
-                    else config.get('description', None),
-                'rooms':
-                    []
-                    if type(config) is str
-                    else config.get('rooms', []),
+                'description': config.get('description', "No description available."),
+                'rooms': config.get('rooms', []),
+                'help': config.get('help', False),
             } for keyword, config in self._keywords.items()}
 
     def getKeywords(self) -> str:

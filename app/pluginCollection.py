@@ -89,6 +89,9 @@ class pluginCollection:
                             **c.registerKeywords(self.__plugins[c.__name__])
                         }
 
+        # Sort keyword dict by key
+        self.__keywords = dict(sorted(self.__keywords.items()))
+
         # Scan all modules in current package recursively
         if isinstance(importedPackage.__path__, str):
             allCurrentPaths = [importedPackage.__path__]
@@ -112,13 +115,11 @@ class pluginCollection:
 
     async def help(self, controlsign: str, roomId: str) -> str:
         maxLengthKeywords = len(max(self.__keywords.keys(), key=len))
-        output = "%s%s\n  %s" \
-            % (
-                controlsign,
-                'help [command]',
-                'Show extended help for command if available. '
-                'Example: %shelp dates' % controlsign
-            )
+
+        output = "Please use one of the following commands.\n\n%s | %s\n" % (
+            'COMMAND'.rjust(maxLengthKeywords+2),
+            'FUNCTION'
+        )
 
         for keyword, value in self.__keywords.items():
 
@@ -127,8 +128,19 @@ class pluginCollection:
                 continue
 
             output += \
-                "\n%s%s\n  %s" \
-                % (controlsign, keyword, value['description'])
+                "%s%s | %s" % (
+                    controlsign.rjust(maxLengthKeywords-len(keyword)+2),
+                    keyword,
+                    value['description']
+                )
+            if value['help']:
+                output += " (*)"
+            output += "\n"
+
+        output += \
+            "\nCommands with (*) provides extended help. You can use "\
+            "%shelp COMMAND (e.g. %shelp dates) to show this help." \
+            % (controlsign, controlsign)
 
         return output
 
@@ -171,6 +183,7 @@ class pluginCollection:
         """
         Run plugin help function for keyword if implemented
         """
+
         try:
             keywordMethod = getattr(
                 self.__plugins[self.__keywords[keyword]['plugin']],
@@ -178,6 +191,6 @@ class pluginCollection:
             )
             result = keywordMethod(controlsign, roomId)
         except (KeyError, AttributeError):
-            result = "Plugin method has no extended help."
+            result = None
 
         return result
