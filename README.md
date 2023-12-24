@@ -4,10 +4,12 @@ matrix-nio based bot using plugins to realize commands and auto announcements.
 ## Plugins
 | Plugin | Description |
 | --- | --- |
-| Amtsblatt | Output link to "Amtsblatt der Landeshauptstadt Erfurt" and announce new releases |
-| Dates | Output dates from configured icals and announce upcoming events |
-| Echo | Output parameters |
-| Time | Output current date and time |
+| amtsblatt | Link to "Amtsblatt der Landeshauptstadt Erfurt" and announce new releases |
+| dates | Next dates from configured icals and announce upcoming events |
+| echo | Print text after keyword |
+| now | Current date and time |
+| rss | Latest entries from RSS feeds and announce new entries |
+| status | Current room status |
 
 ## Dependencies
 ### System (Debian-related)
