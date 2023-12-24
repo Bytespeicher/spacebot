@@ -48,6 +48,10 @@ class pluginCollection:
     def __scanPlugins(self, package, matrixApi):
         """Recursively walk the supplied package to retrieve all plugins"""
 
+        # Ignore __pycache__ folders
+        if package.split('.')[-1] == '__pycache__':
+            return
+
         # Import package from parameters
         importedPackage = __import__(package, fromlist=['test'])
 
