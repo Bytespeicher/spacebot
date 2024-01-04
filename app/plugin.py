@@ -88,6 +88,7 @@ class plugin(ABC):
                     config.get('description', "No description available."),
                 'rooms': config.get('rooms', []),
                 'help': config.get('help', False),
+                'outputHtml': config.get('outputHtml', False),
             } for keyword, config in self._keywords.items()}
 
     def getKeywords(self) -> str:
