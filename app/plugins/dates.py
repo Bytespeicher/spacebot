@@ -6,6 +6,8 @@ import icalendar
 import recurring_ical_events
 import locale
 import pytz
+import os
+import xml.etree.ElementTree
 
 import app.plugin
 from app.config import config
@@ -96,7 +98,7 @@ class dates(app.plugin.plugin):
                         )
                     )
                     self.__calendar[calendarConfig['id']] = \
-                        icalendar.Calendar.from_ical(await response.text())
+                        self.__parseFile(calendarConfig.get('type', 'ical'), await response.text())
                     self.__parseEvents(calendarConfig)
 
         except Exception as e:
@@ -110,6 +112,41 @@ class dates(app.plugin.plugin):
                 )
             )
             self.__calendar[calendarConfig['id']] = None
+
+    def __parseFile(self, filetype, text):
+
+        # Parse ical format
+        if filetype == 'ical':
+            return icalendar.Calendar.from_ical(text)
+
+        # Parse xcal format
+        if filetype == 'xcal':
+
+            xmlFormat = xml.etree.ElementTree.fromstring(text)
+
+            # Build ical from xcal
+            icalFormat = "BEGIN:VCALENDAR" + os.linesep
+            icalFormat += "PRODID;X-RICAL-TZSOURCE=TZINFO:-//com.denhaven2/NONSGML ri_cal gem//EN" + os.linesep
+            icalFormat += "CALSCALE:GREGORIAN" + os.linesep
+            icalFormat += "VERSION:2.0" + os.linesep
+
+            # Parse event elements
+            for vevent in xmlFormat.findall('vcalendar/vevent'):
+                icalFormat += 'BEGIN:VEVENT' + os.linesep
+                icalFormat += ('DTSTART;VALUE=DATE-TIME:%s' % vevent.find('dtstart').text) + os.linesep
+                icalFormat += ('DTEND;VALUE=DATE-TIME:%s' % vevent.find('dtend').text) + os.linesep
+                icalFormat += ('UID:%s' % vevent.find('uid').text) + os.linesep
+                icalFormat += ('DESCRIPTION:%s' % vevent.find('description').text) + os.linesep
+                icalFormat += ('URL:%s' % vevent.find('url').text) + os.linesep
+                icalFormat += ('SUMMARY:%s' % vevent.find('summary').text) + os.linesep
+                icalFormat += ('LOCATION:%s' % vevent.find('location').text) + os.linesep
+                icalFormat += 'END:VEVENT' + os.linesep
+
+            # Close ical format
+            icalFormat += "END:VCALENDAR"
+
+            # Parse generated ical
+            return icalendar.Calendar.from_ical(icalFormat)
 
     def __parseEvents(self, calendarConfig: dict):
 
