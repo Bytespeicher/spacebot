@@ -41,6 +41,8 @@ plugins:
         # limit_entries: 4
         # Announce location (optional)
         # announce_location: true
+        # Calender format (ical - default, xcal)
+        # type: ical
     # Configure format for output
     format:
       datetime: '%d.%m.%Y %H:%M'
