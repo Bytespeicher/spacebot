@@ -6,3 +6,4 @@ pydeepmerge>=0.3.3
 pyyaml>=6.0.1
 recurring_ical_events>=2.1.1
 safer>=4.10.1
+de-nina>=1.1.0

@@ -7,6 +7,7 @@ matrix-nio based bot using plugins to realize commands and auto announcements.
 | amtsblatt | Link to "Amtsblatt der Landeshauptstadt Erfurt" and announce new releases |
 | dates | Next dates from configured icals and announce upcoming events |
 | echo | Print text after keyword |
+| mowas | Alert messsages from Modulares Warnsystem |
 | now | Current date and time |
 | rss | Latest entries from RSS feeds and announce new entries |
 | status | Current room status |

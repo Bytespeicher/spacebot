@@ -46,6 +46,22 @@ plugins:
       datetime: '%d.%m.%Y %H:%M'
     # Restrict output of events for the couple of days
     list_days: 21
+  mowas:
+    _enabled: true
+    # Location definitions
+    locations:
+    - id: erfurt
+      name: Erfurt
+      # Amtlicher Regionalschluessl (ARS) for location
+      # see https://www.xrepository.de/details/urn:de:bund:destatis:bevoelkerungsstatistik:schluessel:rs_2021-01-31
+      ars: '160510000000'
+      # Announce high water occurrences
+      highwater: true
+      # Announce weather occurrences
+      weather: true
+      # Restrict automatic announcement of new occurrences to room
+      rooms:
+      - '!ABCDEFGHIJKLMNOPQR:chat.example.org'
   now:
     _enabled: true
     locale: de_DE
