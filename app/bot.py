@@ -343,15 +343,28 @@ class bot:
                     )
 
                 if result is not None:
-                    # Send valid result
-                    messageResponse = await self.__matrixApi.room_send(
-                        room.room_id,
-                        message_type="m.room.message",
-                        content={
-                            "msgtype": "m.text",
-                            "body": "%s" % result
-                        }
-                    )
+                    if pluginCollection().isOutputHtml(keyword):
+                        # Send valid result as html
+                        messageResponse = await self.__matrixApi.room_send(
+                            room.room_id,
+                            message_type="m.room.message",
+                            content={
+                                "msgtype": "m.text",
+                                "format": "org.matrix.custom.html",
+                                "body": "message",
+                                "formatted_body": "%s" % result
+                            }
+                        )
+                    else:
+                        # Send valid result as text
+                        messageResponse = await self.__matrixApi.room_send(
+                            room.room_id,
+                            message_type="m.room.message",
+                            content={
+                                "msgtype": "m.text",
+                                "body": "%s" % result
+                            }
+                        )
 
     async def _run(self):
         self.__matrixApi.add_event_callback(

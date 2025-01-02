@@ -88,6 +88,7 @@ class plugin(ABC):
                     config.get('description', "No description available."),
                 'rooms': config.get('rooms', []),
                 'help': config.get('help', False),
+                'outputHtml': config.get('outputHtml', False),
             } for keyword, config in self._keywords.items()}
 
     def getKeywords(self) -> str:
@@ -113,7 +114,7 @@ class plugin(ABC):
         else:
             rooms = [roomId]
 
-        if messageType not in ['text', 'notice']:
+        if messageType not in ['text', 'notice', 'html']:
             raise ValueError("Wrong value for messageType")
 
         for room in rooms:
@@ -121,14 +122,26 @@ class plugin(ABC):
                 "[%s] Send message in room %s:\n%s"
                 % (self.getName(), room, message)
             )
-            messageResponse = await self.__matrixApi.room_send(
-                room,
-                message_type="m.room.message",
-                content={
-                    "msgtype": "m.%s" % messageType,
-                    "body": "%s" % message
-                }
-            )
+            if messageType in ['text', 'notice']:
+                messageResponse = await self.__matrixApi.room_send(
+                    room,
+                    message_type="m.room.message",
+                    content={
+                        "msgtype": "m.%s" % messageType,
+                        "body": "%s" % message
+                    }
+                )
+            elif messageType in ['html']:
+                messageResponse = await self.__matrixApi.room_send(
+                    room,
+                    message_type="m.room.message",
+                    content={
+                        "msgtype": "m.text",
+                        "format": "org.matrix.custom.html",
+                        "body": "message",
+                        "formatted_body": "%s" % message
+                    }
+                )
 
     def _getIdsByRoomId(self, configName: str, roomId: str) -> list:
         """Get list of item id with roomId

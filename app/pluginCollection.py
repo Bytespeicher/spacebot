@@ -194,3 +194,7 @@ class pluginCollection:
             result = None
 
         return result
+
+    def isOutputHtml(self, keyword: str) -> bool:
+        """Returns if output from keyword should handled as HTML output"""
+        return self.__keywords[keyword]['outputHtml']
