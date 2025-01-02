@@ -46,6 +46,9 @@ plugins:
       datetime: '%d.%m.%Y %H:%M'
     # Restrict output of events for the couple of days
     list_days: 21
+  now:
+    _enabled: true
+    locale: de_DE
   rss:
     _enabled: true
     # Number of items in output
@@ -89,6 +92,3 @@ plugins:
       # Restrict command response to room
       rooms:
       - '!ABCDEFGHIJKLMNOPQR:chat.example.org'
-  now:
-    _enabled: true
-    locale: de_DE
