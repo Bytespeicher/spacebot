@@ -50,6 +50,9 @@ plugins:
     list_days: 21
   mowas:
     _enabled: true
+    # Configure format for output
+    format:
+      datetime: '%d.%m.%Y %H:%M'
     # Location definitions
     locations:
     - id: erfurt

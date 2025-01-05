@@ -33,7 +33,9 @@ class mowas(app.plugin.plugin):
     _configDefault = {}
 
     # Required configuration values
-    _configRequired = []
+    _configRequired = [
+        'format.datetime'
+    ]
 
     # API Url for MoWaS
     __apiUrl = "https://nina.api.proxy.bund.dev/api31"
@@ -376,6 +378,19 @@ class mowas(app.plugin.plugin):
             # Add update information
             if warning['payload']['data']['msg_type'].lower() == 'update':
                 output += "<font color=\"#666666\"> | Aktualisierung</font>"
+
+            # Add validity date
+            if 'onset' in warning and 'expires' in warning:
+                output += \
+                    "<br /><font color=\"#aaaaaa\"><i> " \
+                    "(gültig vom %s bis %s)</i></font>" % (
+                        warning['onset'].strftime(
+                            self._config['format']['datetime']
+                        ),
+                        warning['expires'].strftime(
+                            self._config['format']['datetime']
+                        )
+                    )
 
         except (KeyError, TypeError) as e:
             # No valid warning found
