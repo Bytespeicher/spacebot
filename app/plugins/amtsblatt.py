@@ -19,7 +19,8 @@ class amtsblatt(app.plugin.plugin):
     # Keyword
     _keywords = {
         'amtsblatt': {
-            'description': 'Link to latest "Amtsblatt der Landeshauptstadt Erfurt"',
+            'description':
+                'Link to latest "Amtsblatt der Landeshauptstadt Erfurt"',
         }
     }
 
