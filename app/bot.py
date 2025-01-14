@@ -1,4 +1,5 @@
 import asyncio
+import datetime
 import json
 import nio
 import os
@@ -267,13 +268,30 @@ class bot:
         self, room: nio.MatrixRoom, event: nio.RoomMessageText
     ):
 
+        # Get timestamp from message
+        try:
+            messageTimestamp = \
+                datetime.datetime.fromtimestamp(
+                    event.server_timestamp/1000.0
+                )
+        except AttributeError:
+            print(
+                "Message without timestamp received in room %s from %s: %s"
+                % (room.display_name, room.user_name(event.sender), event.body)
+            )
+            return
+
+        # Calculate message timestamp limit (not older then 5 seconds)
+        messageTimestampLimit = \
+            datetime.datetime.now() - datetime.timedelta(seconds=5)
+
         # only accept messages
         # - from other users
         # - starting with control sign
-        # - not older as 5000ms
+        # - not older then message timestamp limit
         if (event.sender != room.own_user_id
                 and event.body.startswith(self._config['controlsign'])
-                and event.source['unsigned']['age'] <= 5000):
+                and messageTimestamp >= messageTimestampLimit):
 
             # Log message
             print(
