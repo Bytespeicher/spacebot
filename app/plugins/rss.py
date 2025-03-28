@@ -3,6 +3,7 @@ import aiohttp
 import asyncio
 import datetime
 import feedparser
+import random
 import time
 
 import app.plugin
@@ -68,8 +69,9 @@ class rss(app.plugin.plugin):
 
         # Run collected feed ids in standard cron every 15 minutes
         if len(feedIdsDefaultCron) > 0:
+            randomMinute = random.randint(0,14)
             aiocron.crontab(
-                'R/15 * * * *',
+                '%s/15 * * * *' % randomMinute,
                 func=self.__getRss,
                 args=(True, feedIdsDefaultCron)
             )
