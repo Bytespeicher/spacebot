@@ -3,6 +3,7 @@ import aiohttp
 import asyncio
 import datetime
 import icalendar
+import json
 import recurring_ical_events
 import locale
 import pytz
@@ -99,6 +100,7 @@ class dates(app.plugin.plugin):
                     )
                     self.__calendar[calendarConfig['id']] = \
                         self.__parseFile(
+                            calendarConfig,
                             calendarConfig.get('type', 'ical'),
                             await response.text()
                         )
@@ -116,23 +118,77 @@ class dates(app.plugin.plugin):
             )
             self.__calendar[calendarConfig['id']] = None
 
-    def __parseFile(self, filetype, text):
+    def __parseFile(self, calendarConfig: dict, filetype: str, text):
 
         # Parse ical format
         if filetype == 'ical':
             return icalendar.Calendar.from_ical(text)
 
-        # Parse xcal format
-        if filetype == 'xcal':
+        # Parse json format (pretalx)
+        if filetype == 'json':
 
-            xmlFormat = xml.etree.ElementTree.fromstring(text)
+            jsonFormat = json.loads(text)
 
-            # Build ical from xcal
+            # Build ical from json
             icalFormat = "BEGIN:VCALENDAR" + os.linesep
             icalFormat += "PRODID;X-RICAL-TZSOURCE=TZINFO:-//com.denhaven2/"\
                           "NONSGML ri_cal gem//EN" + os.linesep
             icalFormat += "CALSCALE:GREGORIAN" + os.linesep
             icalFormat += "VERSION:2.0" + os.linesep
+
+            # Parse event elements
+            for day in jsonFormat['schedule']['conference']['days']:
+                for room in day['rooms']:
+                    for event in day['rooms'][room]:
+
+                        # Get start and end time
+                        dtstart = \
+                            datetime.datetime.fromisoformat(
+                                event['date']
+                            ).astimezone(
+                                pytz.timezone('Europe/Berlin')
+                            )
+                        duration = \
+                            datetime.datetime.strptime(
+                                event['duration'],
+                                '%H:%M'
+                            )
+                        dtend = \
+                            dtstart + \
+                            datetime.timedelta(
+                                hours=duration.hour,
+                                minutes=duration.minute
+                            )
+
+                        icalFormat += 'BEGIN:VEVENT' + os.linesep
+                        icalFormat += ('DTSTART;VALUE=DATE-TIME:%s' %
+                                       dtstart.strftime('%Y%m%dT%H%M%S')
+                                       ) + os.linesep
+                        icalFormat += ('DTEND;VALUE=DATE-TIME:%s' %
+                                       dtend.strftime('%Y%m%dT%H%M%S')
+                                       ) + os.linesep
+                        icalFormat += ('UID:%s' %
+                                       event['guid']) + os.linesep
+                        icalFormat += ('DESCRIPTION:%s' %
+                                       event['description']) + os.linesep
+                        icalFormat += ('URL:%s' %
+                                       event['url']) + os.linesep
+                        icalFormat += ('SUMMARY:%s' %
+                                       event['title']) + os.linesep
+                        icalFormat += ('LOCATION:%s' %
+                                       room) + os.linesep
+                        icalFormat += 'END:VEVENT' + os.linesep
+
+            # Close ical format
+            icalFormat += "END:VCALENDAR"
+
+            # Parse generated ical
+            return icalendar.Calendar.from_ical(icalFormat)
+
+        # Parse xcal format
+        if filetype == 'xcal':
+
+            xmlFormat = xml.etree.ElementTree.fromstring(text)
 
             # Parse event elements
             for vevent in xmlFormat.findall('vcalendar/vevent'):
@@ -158,6 +214,11 @@ class dates(app.plugin.plugin):
 
             # Parse generated ical
             return icalendar.Calendar.from_ical(icalFormat)
+
+        print(
+            "[%s] Invalid filetype %s for calendar with id '%s'."
+            % (self.getName(), filetype, calendarConfig['id'])
+        )
 
     def __parseEvents(self, calendarConfig: dict):
 
