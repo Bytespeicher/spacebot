@@ -69,7 +69,7 @@ class rss(app.plugin.plugin):
 
         # Run collected feed ids in standard cron every 15 minutes
         if len(feedIdsDefaultCron) > 0:
-            randomMinute = random.randint(0,14)
+            randomMinute = random.randint(0, 14)
             aiocron.crontab(
                 '%s/15 * * * *' % randomMinute,
                 func=self.__getRss,
