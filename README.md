@@ -1,4 +1,10 @@
 # Spacebot
+
+**CAUTION: This repository has been migrated to codeberg, and now lives at [codeberg.org/technikkultur-erfurt/spacebot](https://codeberg.org/technikkultur-erfurt/spacebot).**
+**This repository is now an archive.**
+
+---
+
 matrix-nio based bot using plugins to realize commands and auto announcements.
 
 ## Plugins
